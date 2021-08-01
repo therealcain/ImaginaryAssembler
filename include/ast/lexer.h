@@ -14,7 +14,7 @@ typedef enum {
 } LexerTokenTypes;
 
 typedef struct {
-    LexerTokenTypes types;
+    LexerTokenTypes type;
     void*           p_data;
 } LexerTokenVariant;
 

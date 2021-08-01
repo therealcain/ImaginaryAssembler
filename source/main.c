@@ -5,7 +5,6 @@
 
 int main(int argc, char** argv)
 {
-    /* Making sure that the user specified files. */
     if(argc <= 1)
     {
         fprintf(stderr, "Please specify files.");

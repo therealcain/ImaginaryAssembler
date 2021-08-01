@@ -10,7 +10,7 @@ Next: move $20,$4
  call val1 
  jmp $4 
 END: stop 
-STR: .asciz "aBcd" 
+STR: .asciz " aBcd" 
 LIST: .db 6,-9 
  .dh 27056 
 .entry K 

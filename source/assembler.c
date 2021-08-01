@@ -15,14 +15,12 @@ void start_assembler(const char* path)
 
     fp = fopen(path, "r");
 
-    /* Making sure path actually exists. */
     if(fp == NULL)
     {
         fprintf(stderr, "Failed to load: %s, Skipping...", path);
         return;
     }
 
-    /* Fetching every line. */
     while(fgets(buf, BUFFER_SIZE, fp)) 
     {
         const LexerTokens tokens = lexer_tokenize_line(buf, line);
