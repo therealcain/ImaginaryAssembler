@@ -7,126 +7,85 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#define LEXER_PREFIX "[LexicalAnalysis]"
+#define LEXER_PREFIX "LexicalAnalysis"
 
 /* ------------------------------------------------------------------------- */
 
 /* Checks whether token is a comment or not. */
 static
-bool is_token_comment(const char* string) {
-    return string[0] == ';';
+bool is_token_comment(const char* p_string) {
+    return p_string[0] == ';';
 }
 
 /* Checks whether token is an opcode or not. */
 static
-bool is_token_opcode(const char* string) {
-    return get_opcode_from_string(string) != OPCODE_UNKNOWN;
+bool is_token_opcode(const char* p_string) {
+    return get_opcode_from_string(p_string) != OPCODE_UNKNOWN;
 }
 
 /* Checks whether token is a label or not. */
 static
-bool is_token_label(const char* string) {
-    return get_label_from_string(string) != LABEL_UNKNOWN;
+bool is_token_label(const char* p_string) {
+    return get_label_from_string(p_string) != LABEL_UNKNOWN;
 }
 
 /* Checks whether token is an optional label or not. */
 static
-bool is_token_optional_label(const char* string) {
-    return string[strlen(string) - 1] == ':';
+bool is_token_optional_label(const char* p_string) {
+    return p_string[strlen(p_string) - 1] == ':';
 }
 
 /* ------------------------------------------------------------------------- */
 
-/* Split string into tokens. */
 static
-const char* get_token(const char* string, size_t length, uint32_t* index)
+size_t count_spaces_and_commas(const char* string, size_t length)
 {
-    char* temp;
     size_t i;
+    size_t result = 0;
 
-    for(i = *index; i < length; ++i)
+    for(i = 0; i < length; i++)
+        result += (isspace(string[i]) || string[i] == ',');
+
+    return result;
+}
+
+static
+char** split_line_string(const char* string, size_t length)
+{
+    char** tokens;
+    size_t array_index;
+    size_t begin, end;
+
+    begin       = 0;
+    array_index = 0;
+    tokens      = (char*)malloc(count_spaces_and_commas(string, length) * sizeof(char*));
+
+    for(end = 0; end < length; end++)
     {
-        if(isspace(string[i]) || string[i] == ',')
-            break;
-    }
-
-    temp = get_substring(string, *index, i);
-    *index = i + 1;
-
-    return temp;
-}
-
-/*
-static
-size_t get_number_of_tokens(const char* string, size_t length)
-{
-    size_t counter = 0;
-    uint32_t index = 0;
-
-    while(index < length)
-    {
-        UNUSED(get_token(string, length, &index));
-        counter++;
-    }
-
-    return counter;
-}
-*/
-
-/* ------------------------------------------------------------------------- */
-
-static
-void handle_opcode_token(LexerTokens* tokens, 
-                         uint32_t* index, size_t length,
-                         OpcodeTypes opcode)
-{
-     
-}
-
-static
-void handle_label_token(LexerTokens* tokens, 
-                        uint32_t* index, size_t length,
-                        LabelTypes label)
-{
-
-}
-
-static
-void handle_optional_label_token(LexerTokens* tokens,
-                                 uint32_t* index, size_t length,
-                                 const char* label)
-{
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-LexerTokens lexer_tokenize_line(const char* string, size_t line)
-{
-    LexerTokens tokens;
-
-    uint32_t index  = 0;
-    size_t   length = strlen(string);
-
-    const char* token = get_token(string, length, &index);
-
-    if(token != NULL)
-    {
-        if(!is_token_comment(token))
+        if(isspace(string[end]) || string[end] == ',')
         {
-            if(is_token_opcode(token))
-                handle_opcode_token(&tokens, &index, length, get_opcode_from_string(token));
-
-            else if(is_token_label(token))
-                handle_label_token(&tokens, &index, length, get_label_from_string(token));
-
-            else if(is_token_optional_label(token))
-                handle_optional_label_token(&tokens, &index, length, token);
+            tokens[array_index] = strncpy(string, begin, end);
+            array_index++;
+            begin = end;
         }
-
-        free((char*)token);
     }
-    
+
     return tokens;
 }
 
+/* ------------------------------------------------------------------------- */
+LexerTokens lexer_tokenize_line(const char* string, size_t line)
+{
+    size_t length, i;
+    const char** tokens;
+
+#ifndef NDEBUG
+    printf("[%s] Parsing: '%s' at line: %d\n", LEXER_PREFIX, string, line);
+#endif
+
+    length = strlen(string);
+    tokens = split_line_string(string, length);
+
+    for(i = 0; i < count_spaces_and_commas(string, length); i++)
+        printf("%s", tokens[i]);
+}

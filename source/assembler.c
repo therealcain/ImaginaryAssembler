@@ -32,5 +32,7 @@ void start_assembler(const char* path)
     }
 
     fclose(fp);
+
+#undef BUFFER_SIZE
 }
 
