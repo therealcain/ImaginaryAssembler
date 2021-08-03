@@ -1,17 +1,6 @@
 #ifndef LABELS_GUARD_H
 #define LABELS_GUARD_H
 
-/*
-#define XLABELTYPES     \
-    X(LABEL_data_byte)  \
-    X(LABEL_data_word)  \
-    X(LABEL_data_dword) \
-    X(LABEL_asciz)      \
-    X(LABEL_entry)      \
-    X(LABEL_extern)     \
-    X(LABEL_UNKNOWN)
-*/
-
 typedef enum {
 
     LABEL_data_byte = 0,  /* .db     */
@@ -26,6 +15,9 @@ typedef enum {
 
 /* A hash function to convert string to label. */
 extern LabelTypes get_label_from_string(const char* string);
+
+/* A hash function to convert label to string. */
+extern const char* get_string_from_label(LabelTypes type);
 
 #endif /* LABELS_GUARD_H */
 

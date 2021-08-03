@@ -33,3 +33,16 @@ LabelTypes get_label_from_string(const char* string)
     return LABEL_UNKNOWN;
 }
 
+const char* get_string_from_label(LabelTypes type)
+{
+    size_t i;
+    for(i = 0; i < lookup_table_size; ++i)
+    {
+        const HashLabel* lookup = &lookup_table[i];
+
+        if(type == lookup->label)
+            return lookup->name;
+    }
+
+    return NULL;
+}

@@ -11,6 +11,7 @@ typedef unsigned int    uint32_t;
 
 #include <stddef.h>
 /* typedef uint32_t        size_t; */
+/* typedef int32_t         ssize_t; */
 
 #endif /* STDINT_GUARD_H */
 

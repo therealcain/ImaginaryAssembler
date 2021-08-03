@@ -15,14 +15,15 @@ typedef enum {
 
 typedef struct {
     LexerTokenTypes type;
-    void*           p_data;
+    union {
+        uint8_t     venum;
+        const char* string;
+    } data;
 } LexerTokenVariant;
 
 typedef struct {
     LexerTokenVariant* p_tokens;
     size_t             size;
-
-    const char* p_error;
 } LexerTokens;
 
 extern LexerTokens lexer_tokenize_line(const char* string, size_t line);

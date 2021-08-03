@@ -53,3 +53,16 @@ OpcodeTypes get_opcode_from_string(const char* string)
     return OPCODE_UNKNOWN;
 }
 
+const char* get_string_from_opcode(OpcodeTypes type)
+{
+    size_t i;
+    for(i = 0; i < lookup_table_size; ++i)
+    {
+        const HashOpcode* lookup = &lookup_table[i];
+
+        if(type == lookup->opcode)
+            return lookup->name;
+    }
+
+    return NULL;
+}

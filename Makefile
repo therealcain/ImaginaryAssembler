@@ -1,6 +1,6 @@
 # Compiler Configuration
 CC      = gcc
-CFLAGS  = -O2 -Wall -Wextra -Wpedantic --ansi -g # -fanalyzer -m32 -DNDEBUG
+CFLAGS  = -O2 -Wall -Wextra -Wpedantic -std=gnu89 -g # -fanalyzer --ansi -m32 -DNDEBUG -fsanitize=address
 LDFLAGS = -lm 
 # Binary name and path
 BUILD_FOLDER = build

@@ -37,5 +37,8 @@ typedef enum {
 /* A hash function to convert string to opcode. */
 extern OpcodeTypes get_opcode_from_string(const char* string);
 
+/* A hash function to convert opcode to string. */
+extern const char* get_string_from_opcode(OpcodeTypes type);
+
 #endif /* OPCODES_GUARD_H */
 

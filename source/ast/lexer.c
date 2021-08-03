@@ -1,4 +1,5 @@
 #include "../../include/ast/lexer.h"
+#include "../../include/utils/debug_logger.h"
 
 #include "../../include/utils/predefs.h"
 #include "../../include/utils/string.h"
@@ -22,17 +23,6 @@ LexerTokens make_lexer_tokens(size_t size)
 
     return tokens;
 }
-
-/* Pushing token into LexerTokens. */
-static
-void push_lexer_token(LexerTokens* p_tokens, LexerTokenTypes type, void* p_data, size_t idx)
-{
-    assert(p_tokens->size >= idx);
-
-    p_tokens->p_tokens[idx].p_data = p_data;
-    p_tokens->p_tokens[idx].type   = type;
-}
-
 /* ------------------------------------------------------------------------- */
 
 /* Checks whether token is a comment or not. */
@@ -141,8 +131,6 @@ size_t get_number_of_tokens(const char* string, size_t length)
 }
 
 /* ------------------------------------------------------------------------- */
-/*
-#ifndef NDEBUG
 static
 void print_tokens(LexerTokens* p_tokens)
 {
@@ -152,16 +140,31 @@ void print_tokens(LexerTokens* p_tokens)
 
     for(i = 0; i < p_tokens->size; i++)
     {
-        switch(p_tokens->p_token[i].type)
+        switch(p_tokens->p_tokens[i].type)
         {
         case TOKEN_label:
-            printf("")
+            debug_log(LOG_NORMAL, "Label: %s\n", 
+                get_string_from_label((LabelTypes)p_tokens->p_tokens[i].data.venum));
+            break;
+
+        case TOKEN_optional_label:
+            debug_log(LOG_NORMAL, "Optional Label: %s\n", 
+                p_tokens->p_tokens[i].data.string);
+            break;
+
+        case TOKEN_opcode:
+            debug_log(LOG_NORMAL, "Opcode: %s\n", 
+                get_string_from_opcode((OpcodeTypes)p_tokens->p_tokens[i].data.venum));
+            break;
+
+        case TOKEN_parameter:
+            debug_log(LOG_NORMAL, "Parameter: %s\n", 
+                p_tokens->p_tokens[i].data.string);
             break;
         }
     }
 }
-#endif
-*/
+
 /* ------------------------------------------------------------------------- */
 LexerTokens lexer_tokenize_line(const char* string, size_t line)
 {
@@ -178,37 +181,54 @@ LexerTokens lexer_tokenize_line(const char* string, size_t line)
     num_of_tokens = get_number_of_tokens(string, length);
     tokens        = make_lexer_tokens(num_of_tokens);
 
-#ifndef NDEBUG
-    printf("[%s] Parsing Line: %ld, Number of tokens: %ld\n\tContent: %s\n", LEXER_PREFIX, line, num_of_tokens, string);
-#endif
+    debug_log(LOG_WARNING, 
+        "[%s] Parsing Line: %ld, \n\tTokens: %ld\n\tContent: %s\n", 
+         LEXER_PREFIX, line, num_of_tokens, string);
 
     while((token = get_next_token(string, &begin, &end, length)) != NULL)
     {
-        if(!is_token_comment(token))
+        if(is_token_comment(token))
         {
-            if(is_token_label(token))
-                push_lexer_token(&tokens, TOKEN_label, (void*)get_label_from_string(string), tokens_idx);
-
-            else if(is_token_optional_label(token))
+            free((void*)token);
+            return tokens;
+        }
+        else
+        {
+            if(is_token_optional_label(token))
             {
-                push_lexer_token(&tokens, TOKEN_optional_label, (void*)string, tokens_idx);
-                break;
+                tokens.p_tokens[tokens_idx].type        = TOKEN_optional_label;
+                tokens.p_tokens[tokens_idx].data.string = token;
             }
+
+            else if(is_token_label(token))
+            {
+                tokens.p_tokens[tokens_idx].type       = TOKEN_label;
+                tokens.p_tokens[tokens_idx].data.venum = (uint8_t)get_label_from_string(token);
+                
+                free((void*)token);
+            }
+
             else if(is_token_opcode(token))
-                push_lexer_token(&tokens, TOKEN_opcode, (void*)get_opcode_from_string(string), tokens_idx);
-        
+            {
+                tokens.p_tokens[tokens_idx].type        = TOKEN_opcode;
+                tokens.p_tokens[tokens_idx].data.venum = (uint8_t)get_opcode_from_string(token);
+
+                free((void*)token);
+            }
+            
             else
             {
-                push_lexer_token(&tokens, TOKEN_parameter, (void*)string, tokens_idx);
-                break;
+                tokens.p_tokens[tokens_idx].type        = TOKEN_parameter;
+                tokens.p_tokens[tokens_idx].data.string = token;
             }
         }
 
-        free((void*)token);
-
-        continue;
         tokens_idx++;
     }
+
+#ifndef NDEBUG
+    print_tokens(&tokens);
+#endif
 
     return tokens;
 }
