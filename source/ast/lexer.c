@@ -131,8 +131,10 @@ size_t get_number_of_tokens(const char* string, size_t length)
 }
 
 /* ------------------------------------------------------------------------- */
+
+/* Iterating over all of the tokens and printing them. */
 static
-void print_tokens(LexerTokens* p_tokens)
+void debug_print_tokens(LexerTokens* p_tokens)
 {
     size_t i;
 
@@ -181,14 +183,15 @@ LexerTokens lexer_tokenize_line(const char* string, size_t line)
     num_of_tokens = get_number_of_tokens(string, length);
     tokens        = make_lexer_tokens(num_of_tokens);
 
-    debug_log(LOG_WARNING, 
-        "[%s] Parsing Line: %ld, \n\tTokens: %ld\n\tContent: %s\n", 
-         LEXER_PREFIX, line, num_of_tokens, string);
+    debug_log(LOG_WARNING, "[%s] Parsing Line: %ld, \n\tTokens: %ld\n\tContent: %s\n", 
+                            LEXER_PREFIX, line, num_of_tokens, string);
 
     while((token = get_next_token(string, &begin, &end, length)) != NULL)
     {
         if(is_token_comment(token))
         {
+            tokens.size = tokens_idx;
+
             free((void*)token);
             return tokens;
         }
@@ -226,9 +229,7 @@ LexerTokens lexer_tokenize_line(const char* string, size_t line)
         tokens_idx++;
     }
 
-#ifndef NDEBUG
-    print_tokens(&tokens);
-#endif
+    debug_print_tokens(&tokens);
 
     return tokens;
 }

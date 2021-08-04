@@ -1,6 +1,8 @@
 #ifndef OPCODES_GUARD_H
 #define OPCODES_GUARD_H
 
+#include "utils/stdint.h"
+
 typedef enum {
 
     OPCODE_add = 0,
@@ -39,6 +41,9 @@ extern OpcodeTypes get_opcode_from_string(const char* string);
 
 /* A hash function to convert opcode to string. */
 extern const char* get_string_from_opcode(OpcodeTypes type);
+
+/* Return the number of parameters the opcode is expecting. */
+extern int8_t opcode_expect_number_of_params(OpcodeTypes type);
 
 #endif /* OPCODES_GUARD_H */
 

@@ -1,6 +1,12 @@
 {
     "files.associations": {
         "string.h": "c",
-        "varargs.h": "c"
+        "varargs.h": "c",
+        "parser.h": "c",
+        "lexer.h": "c",
+        "stdbool.h": "c",
+        "opcodes.h": "c",
+        "stdio.h": "c",
+        "debug_logger.h": "c"
     }
 }

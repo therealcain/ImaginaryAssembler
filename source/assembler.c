@@ -1,5 +1,6 @@
 #include "../include/assembler.h"
 #include "../include/ast/lexer.h"
+#include "../include/ast/parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +24,11 @@ void start_assembler(const char* path)
 
     while(fgets(buf, BUFFER_SIZE, fp)) 
     {
+        /* TODO: NOT FORGET CLEANUP. */
         const LexerTokens tokens = lexer_tokenize_line(buf, line);
-        /* printf("%s", buf); */
+
+        if(tokens.size != 0)
+            parser_parse_line(&tokens, line);
 
         line++;
     }

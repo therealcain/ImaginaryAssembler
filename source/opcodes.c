@@ -5,39 +5,42 @@
 
 typedef struct { 
     char*       name; 
-    OpcodeTypes opcode; 
+    OpcodeTypes opcode;
+    int8_t      expected_params;
 } HashOpcode;
 
 static const HashOpcode lookup_table[] = {
-    { "add" , OPCODE_add  },
-    { "sub" , OPCODE_sub  },
-    { "and" , OPCODE_and  },
-    { "or"  , OPCODE_or   },
-    { "nor" , OPCODE_nor  },
-    { "move", OPCODE_move },
-    { "mvhi", OPCODE_mvhi },
-    { "mvlo", OPCODE_mvlo },
-    { "addi", OPCODE_addi },
-    { "subi", OPCODE_subi },
-    { "andi", OPCODE_andi },
-    { "ori" , OPCODE_ori  },
-    { "nori", OPCODE_nori },
-    { "bne" , OPCODE_bne  },
-    { "blt" , OPCODE_blt  },
-    { "bgt" , OPCODE_bgt  },
-    { "lb"  , OPCODE_lb   },
-    { "sb"  , OPCODE_sb   },
-    { "lw"  , OPCODE_lw   },
-    { "sw"  , OPCODE_sw   },
-    { "lh"  , OPCODE_lh   },
-    { "sh"  , OPCODE_sh   },
-    { "jmp" , OPCODE_jmp  },
-    { "la"  , OPCODE_la   },
-    { "call", OPCODE_call },
-    { "stop", OPCODE_stop }
+    { "add" , OPCODE_add , 3 },
+    { "sub" , OPCODE_sub , 3 },
+    { "and" , OPCODE_and , 3 },
+    { "or"  , OPCODE_or  , 3 },
+    { "nor" , OPCODE_nor , 3 },
+    { "move", OPCODE_move, 2 },
+    { "mvhi", OPCODE_mvhi, 2 },
+    { "mvlo", OPCODE_mvlo, 2 },
+    { "addi", OPCODE_addi, 3 },
+    { "subi", OPCODE_subi, 3 },
+    { "andi", OPCODE_andi, 3 },
+    { "ori" , OPCODE_ori , 3 },
+    { "nori", OPCODE_nori, 3 },
+    { "bne" , OPCODE_bne , 3 },
+    { "blt" , OPCODE_blt , 3 },
+    { "bgt" , OPCODE_bgt , 3 },
+    { "lb"  , OPCODE_lb  , 3 },
+    { "sb"  , OPCODE_sb  , 3 },
+    { "lw"  , OPCODE_lw  , 3 },
+    { "sw"  , OPCODE_sw  , 3 },
+    { "lh"  , OPCODE_lh  , 3 },
+    { "sh"  , OPCODE_sh  , 3 },
+    { "jmp" , OPCODE_jmp , 1 },
+    { "la"  , OPCODE_la  , 1 },
+    { "call", OPCODE_call, 1 },
+    { "stop", OPCODE_stop, 0 }
 };
 
 static const size_t lookup_table_size = sizeof(lookup_table) / sizeof(HashOpcode);
+
+/* ------------------------------------------------------------------------- */
 
 OpcodeTypes get_opcode_from_string(const char* string)
 {
@@ -53,6 +56,8 @@ OpcodeTypes get_opcode_from_string(const char* string)
     return OPCODE_UNKNOWN;
 }
 
+/* ------------------------------------------------------------------------- */
+
 const char* get_string_from_opcode(OpcodeTypes type)
 {
     size_t i;
@@ -65,4 +70,20 @@ const char* get_string_from_opcode(OpcodeTypes type)
     }
 
     return NULL;
+}
+
+/* ------------------------------------------------------------------------- */
+
+int8_t opcode_expect_number_of_params(OpcodeTypes type)
+{
+    size_t i;
+    for(i = 0; i < lookup_table_size; ++i)
+    {
+        const HashOpcode* lookup = &lookup_table[i];
+
+        if(type == lookup->opcode)
+            return lookup->expected_params;
+    }
+
+    return -1;
 }
