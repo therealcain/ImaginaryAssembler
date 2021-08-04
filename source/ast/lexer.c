@@ -168,7 +168,7 @@ void debug_print_tokens(LexerTokens* p_tokens)
 }
 
 /* ------------------------------------------------------------------------- */
-LexerTokens lexer_tokenize_line(const char* string, size_t line)
+LexerTokens lexer_tokenize_line(const char* string, uint32_t line)
 {
     LexerTokens tokens;
     size_t tokens_idx;

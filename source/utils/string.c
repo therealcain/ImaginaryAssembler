@@ -22,3 +22,16 @@ char* get_substring(const char* string, size_t begin, size_t end)
     return substr;
 }
 
+/* ------------------------------------------------------------------------- */
+
+char* get_last_substring_by_delimiter(char* string, char delimiter)
+{
+    char* ret = strrchr(string, delimiter);
+
+    if(ret == NULL)
+        ret = string;
+    else 
+        ret++;
+
+    return ret;
+}

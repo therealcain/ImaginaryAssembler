@@ -27,8 +27,12 @@ void start_assembler(const char* path)
         /* TODO: NOT FORGET CLEANUP. */
         const LexerTokens tokens = lexer_tokenize_line(buf, line);
 
+        /* Line is not empty. */
         if(tokens.size != 0)
+        {
             parser_parse_line(&tokens, line);
+            
+        }
 
         line++;
     }

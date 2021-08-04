@@ -9,6 +9,7 @@
 static
 void print_colored(LogType type, const char* fmt, va_list arg)
 {
+#ifndef NDEBUG
     switch(type)
     {
     case LOG_WARNING:
@@ -26,18 +27,15 @@ void print_colored(LogType type, const char* fmt, va_list arg)
     vprintf(fmt, arg);
 
     printf("\x1B[0m"); /* Reset color codes. */
+#endif
 }
 /* ------------------------------------------------------------------------- */
 
 void debug_log(LogType type, const char* fmt, ...)
 {
-#ifndef NDEBUG
     va_list args;
 
     va_start(args, fmt);
-
     print_colored(type, fmt, args);
-
     va_end(args);
-#endif
 }

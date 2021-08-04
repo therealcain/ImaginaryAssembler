@@ -1,7 +1,14 @@
 # Compiler Configuration
-CC      = gcc
-CFLAGS  = -O2 -Wall -Wextra -Wpedantic -std=gnu89 -g # -fanalyzer --ansi -m32 -DNDEBUG -fsanitize=address
+CC = gcc
+
+ifeq ($(DEBUG), 1)
+	CFLAGS = -O2 -Wall -Wextra -Wpedantic -std=gnu89 -g3 # -fsanitize=address,undefined
+else
+	CFLAGS = -O2 -Wall --ansi -DNDEBUG
+endif
+
 LDFLAGS = -lm 
+
 # Binary name and path
 BUILD_FOLDER = build
 BINARY_NAME  = Assembler

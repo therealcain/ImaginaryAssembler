@@ -118,19 +118,22 @@ bool validate_line(const LexerTokens* p_tokens, size_t line)
 
 /* ------------------------------------------------------------------------- */
 
-// static
-// void generate_symbol_table(LexerTokens* p_tokens)
-// {
+
+static
+void generate_symbol_table(LexerTokens* p_tokens)
+{
     
-// }
+}
+
 
 /* ------------------------------------------------------------------------- */
 
-bool parser_parse_line(const LexerTokens* p_tokens, size_t line)
+bool parser_parse_line(const LexerTokens* p_tokens, uint32_t line)
 {
     if(validate_line(p_tokens, line))
     {
-        // generate_symbol_table(p_tokens);
+        generate_symbol_table(p_tokens);
+
         debug_log(LOG_WARNING, "[%s] success on line %ld\n", PARSER_PREFIX, line);
 
         return true;
