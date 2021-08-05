@@ -1,5 +1,5 @@
 #include "../../include/ast/parser.h"
-#include "../../include/utils/debug_logger.h"
+#include "../../include/utils/debug_print.h"
 #include "../../include/opcodes.h"
 
 #include <stdio.h>
@@ -67,7 +67,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
     /* Making sure there aren't too many labels. */
     if(labels >= 2)
     {
-        debug_log(LOG_ERROR, "Error:\n");
+        debug_print(LOG_ERROR, "Error:\n");
         fprintf(stderr, "[%s] [Line: %d] Too many labels!\n", PARSER_PREFIX, line);
         return false;
     }
@@ -75,7 +75,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
     /* Making sure there aren't too many optional labels. */
     if(optional_labels >= 2)
     {
-        debug_log(LOG_ERROR, "Error:\n");
+        debug_print(LOG_ERROR, "Error:\n");
         fprintf(stderr, "[%s] [Line: %d] Too many optional labels!\n", PARSER_PREFIX, line);
         return false;
     }
@@ -83,7 +83,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
     /* Making sure there aren't too many opcodes. */
     if(opcodes >= 2)
     {
-        debug_log(LOG_ERROR, "Error:\n");
+        debug_print(LOG_ERROR, "Error:\n");
         fprintf(stderr, "[%s] [Line: %d] Too many operation codes!\n", PARSER_PREFIX, line);
         return false;
     }
@@ -91,7 +91,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
     /* Making sure there aren't label and opcodes together. */
     if(opcodes >= 1 && labels >= 1)
     {
-        debug_log(LOG_ERROR, "Error:\n");
+        debug_print(LOG_ERROR, "Error:\n");
         fprintf(stderr, "[%s] [Line: %d] You can't mix operation codes and labels!\n", PARSER_PREFIX, line);
         return false;
     }
@@ -99,7 +99,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
     /* Making sure there there is at least an opcode and a label. */
     if(opcodes == 0 && labels == 0)
     {
-        debug_log(LOG_ERROR, "Error:\n");
+        debug_print(LOG_ERROR, "Error:\n");
         fprintf(stderr, "[%s] [Line: %d] Specify an operation code or label!\n", PARSER_PREFIX, line);
         return false;
     }
@@ -112,7 +112,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
 
         if((int8_t)parameters != expected_params)
         {
-            debug_log(LOG_ERROR, "Error:\n");
+            debug_print(LOG_ERROR, "Error:\n");
 
             if((int8_t)parameters < expected_params)
                 fprintf(stderr, "[%s] [Line: %d] Opcode parameters are too little.\n", PARSER_PREFIX, line);
@@ -126,7 +126,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
     /* Making sure labels have parameters. */
     if(labels == 1 && parameters == 0)
     {
-        debug_log(LOG_ERROR, "Error:\n");
+        debug_print(LOG_ERROR, "Error:\n");
         fprintf(stderr, "[%s] [Line: %d] Label is expecting parameters.", PARSER_PREFIX, line);
         return false;
     }
@@ -136,6 +136,7 @@ bool validate_line(const LexerTokens* p_tokens, uint32_t line)
 
 /* ------------------------------------------------------------------------- */
 
+/* Making sure all tokens are parameters after index. Returning true if finished successfully. */
 static
 bool check_parameters_starting_from_index(const LexerTokens* p_tokens, uint32_t line, size_t index) 
 {
@@ -143,7 +144,7 @@ bool check_parameters_starting_from_index(const LexerTokens* p_tokens, uint32_t 
     {
         if(p_tokens->p_tokens[index].type != TOKEN_parameter)
         {
-            debug_log(LOG_ERROR, "Error:\n");
+            debug_print(LOG_ERROR, "Error:\n");
             fprintf(stderr, "[%s] [Line: %d] Your parameter at position %ld is invalid!\n", PARSER_PREFIX, line, index);
             return false;
         }
@@ -152,6 +153,7 @@ bool check_parameters_starting_from_index(const LexerTokens* p_tokens, uint32_t 
     return true;
 }
 
+/* Making sure lines have the correct order of sequences. */
 static
 bool validate_line_sequence(const LexerTokens* p_tokens, uint32_t line)
 {
@@ -177,7 +179,7 @@ bool validate_line_sequence(const LexerTokens* p_tokens, uint32_t line)
                     return check_parameters_starting_from_index(p_tokens, line, 2);
                 else
                 {
-                    debug_log(LOG_ERROR, "Error:\n");
+                    debug_print(LOG_ERROR, "Error:\n");
                     fprintf(stderr, "[%s] [Line: %d] Second parameter is invalid! make sure it's either an opcode or label.\n", PARSER_PREFIX, line);
                 }
             }
@@ -187,7 +189,7 @@ bool validate_line_sequence(const LexerTokens* p_tokens, uint32_t line)
         
         else if(type == TOKEN_parameter)
         {
-            debug_log(LOG_ERROR, "Error:\n");
+            debug_print(LOG_ERROR, "Error:\n");
             fprintf(stderr, "[%s] [Line: %d] Cannot start with a parameter!\n", PARSER_PREFIX, line);
         }
     }
@@ -197,26 +199,13 @@ bool validate_line_sequence(const LexerTokens* p_tokens, uint32_t line)
 
 /* ------------------------------------------------------------------------- */
 
-// static
-// void generate_symbol_table(LexerTokens* p_tokens)
-// {
-    
-// }
-
-/* ------------------------------------------------------------------------- */
-
-bool parser_parse_line(const LexerTokens* p_tokens, uint32_t line)
+bool parser_validate_line(const LexerTokens* p_tokens, uint32_t line, const char* filename)
 {
-    if(validate_line(p_tokens, line))
+    if(validate_line(p_tokens, line) && validate_line_sequence(p_tokens, line))
     {
-        if(validate_line_sequence(p_tokens, line))
-        {
-            // generate_symbol_table(p_tokens);
+        debug_print(LOG_WARNING, "[%s] success on line %ld\n", PARSER_PREFIX, line);
 
-            debug_log(LOG_WARNING, "[%s] success on line %ld\n", PARSER_PREFIX, line);
-
-            return true;
-        }
+        return true;
     }
 
     return false;

@@ -19,6 +19,8 @@ static const HashLabel lookup_table[] = {
 
 static const size_t lookup_table_size = sizeof(lookup_table) / sizeof(HashLabel);
 
+/* ------------------------------------------------------------------------- */
+
 LabelTypes get_label_from_string(const char* string)
 {
     size_t i;
@@ -32,6 +34,8 @@ LabelTypes get_label_from_string(const char* string)
 
     return LABEL_UNKNOWN;
 }
+
+/* ------------------------------------------------------------------------- */
 
 const char* get_string_from_label(LabelTypes type)
 {

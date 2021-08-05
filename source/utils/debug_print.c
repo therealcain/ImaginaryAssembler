@@ -1,4 +1,4 @@
-#include "../../include/utils/debug_logger.h"
+#include "../../include/utils/debug_print.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -31,7 +31,7 @@ void print_colored(LogType type, const char* fmt, va_list arg)
 }
 /* ------------------------------------------------------------------------- */
 
-void debug_log(LogType type, const char* fmt, ...)
+void debug_print(LogType type, const char* fmt, ...)
 {
     va_list args;
 

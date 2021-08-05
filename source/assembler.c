@@ -6,15 +6,54 @@
 #include <stdlib.h>
 #include "../include/utils/filesystem.h"
 #include "../include/utils/stdint.h"
+#include "../include/utils/string.h"
+
+#define ASSEMBLER_PREFIX "Assembler"
+#define BUFFER_SIZE 81
+
+/* ------------------------------------------------------------------------- */
+
+static
+void overwrite_file(const char *filename, const char* extension)
+{
+    char buf[BUFFER_SIZE] = "\0";
+
+    buffer_concentrate_string(buf, BUFFER_SIZE, filename, extension);
+
+    if(check_file_exists(buf))
+    {
+        printf("[%s] Overwriting file: %s\n", ASSEMBLER_PREFIX, filename);
+        remove(filename);
+    }
+}
+
+static 
+void check_existence_output_files(const char* filename)
+{
+#ifndef NDEBUG
+    /* .dst = Debug Symbol Table */
+    overwrite_file(filename, ".dst");
+#endif
+
+    /* .ob = Object */
+    overwrite_file(filename, ".ob");
+
+    /* .ent = Entry */
+    overwrite_file(filename, ".ent");
+
+    /* .ext = External */
+    overwrite_file(filename, ".ext");
+}
+
+/* ------------------------------------------------------------------------- */
 
 void start_assembler(const char* path)
 {
-#define BUFFER_SIZE 81
-
-    FILE*       fp = NULL;
+    FILE*       fp;
     char        buf[BUFFER_SIZE];
     uint32_t    line = 1;
     const char* filename;
+    bool        parse_success = true;
 
     fp = fopen(path, "r");
 
@@ -24,7 +63,11 @@ void start_assembler(const char* path)
         return;
     }
 
-    filename = get_filename_from_path(path);
+    filename = get_filename_without_extension_from_path(path);
+
+    check_existence_output_files(filename);
+
+    printf("[%s] Reading file: %s\n", ASSEMBLER_PREFIX, path);
 
     while(fgets(buf, BUFFER_SIZE, fp)) 
     {
@@ -34,14 +77,16 @@ void start_assembler(const char* path)
         /* Line is not empty. */
         if(tokens.size != 0)
         {
-            parser_parse_line(&tokens, line);
-            
+            if(!parser_validate_line(&tokens, line, filename))
+                parse_success = false;
         }
 
         line++;
     }
+    
+    if(parse_success)
+        printf("[%s] Validation finished successfully.\n", ASSEMBLER_PREFIX);
 
     free((void*)filename);
     fclose(fp);
 }
-

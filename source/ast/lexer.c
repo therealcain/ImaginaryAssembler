@@ -1,5 +1,5 @@
 #include "../../include/ast/lexer.h"
-#include "../../include/utils/debug_logger.h"
+#include "../../include/utils/debug_print.h"
 
 #include "../../include/utils/predefs.h"
 #include "../../include/utils/string.h"
@@ -145,22 +145,22 @@ void debug_print_tokens(LexerTokens* p_tokens)
         switch(p_tokens->p_tokens[i].type)
         {
         case TOKEN_label:
-            debug_log(LOG_NORMAL, "Label: %s\n", 
+            debug_print(LOG_NORMAL, "Label: %s\n", 
                 get_string_from_label((LabelTypes)p_tokens->p_tokens[i].data.venum));
             break;
 
         case TOKEN_optional_label:
-            debug_log(LOG_NORMAL, "Optional Label: %s\n", 
+            debug_print(LOG_NORMAL, "Optional Label: %s\n", 
                 p_tokens->p_tokens[i].data.string);
             break;
 
         case TOKEN_opcode:
-            debug_log(LOG_NORMAL, "Opcode: %s\n", 
+            debug_print(LOG_NORMAL, "Opcode: %s\n", 
                 get_string_from_opcode((OpcodeTypes)p_tokens->p_tokens[i].data.venum));
             break;
 
         case TOKEN_parameter:
-            debug_log(LOG_NORMAL, "Parameter: %s\n", 
+            debug_print(LOG_NORMAL, "Parameter: %s\n", 
                 p_tokens->p_tokens[i].data.string);
             break;
         }
@@ -183,7 +183,7 @@ LexerTokens lexer_tokenize_line(const char* string, uint32_t line)
     num_of_tokens = get_number_of_tokens(string, length);
     tokens        = make_lexer_tokens(num_of_tokens);
 
-    debug_log(LOG_WARNING, "[%s] Parsing Line: %ld, \n\tTokens: %ld\n\tContent: %s\n", 
+    debug_print(LOG_WARNING, "[%s] Parsing Line: %ld, \n\tTokens: %ld\n\tContent: %s\n", 
                             LEXER_PREFIX, line, num_of_tokens, string);
 
     while((token = get_next_token(string, &begin, &end, length)) != NULL)
@@ -193,7 +193,7 @@ LexerTokens lexer_tokenize_line(const char* string, uint32_t line)
             tokens.size = tokens_idx;
 
             free((void*)token);
-            return tokens;
+            break;
         }
         else
         {
