@@ -26,7 +26,11 @@ typedef struct {
     size_t             size;
 } LexerTokens;
 
-extern LexerTokens lexer_tokenize_line(const char* string, uint32_t line);
+/* Tokenizing the entire line. */
+extern LexerTokens* lexer_tokenize_line(const char* string, uint32_t line);
+
+/* Cleaning internals. */
+extern void lexer_tokens_clear(LexerTokens* p_tokens);
 
 #endif /* LEXER_GUARD_H */
 

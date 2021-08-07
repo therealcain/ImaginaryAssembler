@@ -199,7 +199,7 @@ bool validate_line_sequence(const LexerTokens* p_tokens, uint32_t line)
 
 /* ------------------------------------------------------------------------- */
 
-bool parser_validate_line(const LexerTokens* p_tokens, uint32_t line, const char* filename)
+bool parser_validate_line(const LexerTokens* p_tokens, uint32_t line)
 {
     if(validate_line(p_tokens, line) && validate_line_sequence(p_tokens, line))
     {

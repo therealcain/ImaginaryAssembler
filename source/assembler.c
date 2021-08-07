@@ -7,6 +7,7 @@
 #include "../include/utils/filesystem.h"
 #include "../include/utils/stdint.h"
 #include "../include/utils/string.h"
+#include "../include/utils/vector.h"
 
 #define ASSEMBLER_PREFIX "Assembler"
 #define BUFFER_SIZE 81
@@ -16,14 +17,14 @@
 static
 void overwrite_file(const char *filename, const char* extension)
 {
-    char buf[BUFFER_SIZE] = "\0";
+    char buf[64] = "\0";
 
     buffer_concentrate_string(buf, BUFFER_SIZE, filename, extension);
 
     if(check_file_exists(buf))
     {
-        printf("[%s] Overwriting file: %s\n", ASSEMBLER_PREFIX, filename);
-        remove(filename);
+        printf("[%s] Overwriting file: %s\n", ASSEMBLER_PREFIX, buf);
+        remove(buf);
     }
 }
 
@@ -49,11 +50,13 @@ void check_existence_output_files(const char* filename)
 
 void start_assembler(const char* path)
 {
-    FILE*       fp;
-    char        buf[BUFFER_SIZE];
-    uint32_t    line = 1;
-    const char* filename;
-    bool        parse_success = true;
+    FILE*         fp;
+    char          buf[BUFFER_SIZE];
+    uint32_t      line = 1;
+    const char*   filename;
+    bool          parse_success = true;
+    GenericVector all_tokens;
+    size_t        i;
 
     fp = fopen(path, "r");
 
@@ -66,18 +69,19 @@ void start_assembler(const char* path)
     filename = get_filename_without_extension_from_path(path);
 
     check_existence_output_files(filename);
+    all_tokens = construct_vector();
 
     printf("[%s] Reading file: %s\n", ASSEMBLER_PREFIX, path);
 
     while(fgets(buf, BUFFER_SIZE, fp)) 
     {
-        /* TODO: NOT FORGET CLEANUP. */
-        const LexerTokens tokens = lexer_tokenize_line(buf, line);
+        LexerTokens* tokens = lexer_tokenize_line(buf, line); /* Heap Allocate*/
+        vector_push_back(&all_tokens, (void*)tokens);
 
         /* Line is not empty. */
-        if(tokens.size != 0)
+        if(tokens->size != 0)
         {
-            if(!parser_validate_line(&tokens, line, filename))
+            if(!parser_validate_line(tokens, line))
                 parse_success = false;
         }
 
@@ -87,6 +91,14 @@ void start_assembler(const char* path)
     if(parse_success)
         printf("[%s] Validation finished successfully.\n", ASSEMBLER_PREFIX);
 
+    /* Cleanup */
+    for(i = 0; i < vector_size(&all_tokens); i++)
+    {
+        LexerTokens* p_token = (LexerTokens*)vector_at(&all_tokens, i);
+        lexer_tokens_clear(p_token);
+    }
+
+    vector_clear(&all_tokens);
     free((void*)filename);
     fclose(fp);
 }

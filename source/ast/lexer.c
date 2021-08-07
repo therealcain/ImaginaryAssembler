@@ -15,11 +15,11 @@
 
 /* Allocating memory for LexerTokens. */
 static
-LexerTokens make_lexer_tokens(size_t size)
+LexerTokens* make_lexer_tokens(size_t size)
 {
-    LexerTokens tokens;
-    tokens.size    = size;
-    tokens.p_tokens = (LexerTokenVariant*)malloc(tokens.size * sizeof(LexerTokenVariant));
+    LexerTokens* tokens = (LexerTokens*)malloc(sizeof(LexerTokens));
+    tokens->size     = size;
+    tokens->p_tokens = (LexerTokenVariant*)malloc(tokens->size * sizeof(LexerTokenVariant));
 
     return tokens;
 }
@@ -168,9 +168,9 @@ void debug_print_tokens(LexerTokens* p_tokens)
 }
 
 /* ------------------------------------------------------------------------- */
-LexerTokens lexer_tokenize_line(const char* string, uint32_t line)
+LexerTokens* lexer_tokenize_line(const char* string, uint32_t line)
 {
-    LexerTokens tokens;
+    LexerTokens* tokens;
     size_t tokens_idx;
     size_t length;
     size_t begin, end;
@@ -190,7 +190,7 @@ LexerTokens lexer_tokenize_line(const char* string, uint32_t line)
     {
         if(is_token_comment(token))
         {
-            tokens.size = tokens_idx;
+            tokens->size = tokens_idx;
 
             free((void*)token);
             break;
@@ -199,37 +199,56 @@ LexerTokens lexer_tokenize_line(const char* string, uint32_t line)
         {
             if(is_token_optional_label(token))
             {
-                tokens.p_tokens[tokens_idx].type        = TOKEN_optional_label;
-                tokens.p_tokens[tokens_idx].data.string = token;
+                tokens->p_tokens[tokens_idx].type        = TOKEN_optional_label;
+                tokens->p_tokens[tokens_idx].data.string = token;
             }
 
             else if(is_token_label(token))
             {
-                tokens.p_tokens[tokens_idx].type       = TOKEN_label;
-                tokens.p_tokens[tokens_idx].data.venum = (uint8_t)get_label_from_string(token);
+                tokens->p_tokens[tokens_idx].type       = TOKEN_label;
+                tokens->p_tokens[tokens_idx].data.venum = (uint8_t)get_label_from_string(token);
                 
                 free((void*)token);
             }
 
             else if(is_token_opcode(token))
             {
-                tokens.p_tokens[tokens_idx].type        = TOKEN_opcode;
-                tokens.p_tokens[tokens_idx].data.venum = (uint8_t)get_opcode_from_string(token);
+                tokens->p_tokens[tokens_idx].type        = TOKEN_opcode;
+                tokens->p_tokens[tokens_idx].data.venum = (uint8_t)get_opcode_from_string(token);
 
                 free((void*)token);
             }
             
             else
             {
-                tokens.p_tokens[tokens_idx].type        = TOKEN_parameter;
-                tokens.p_tokens[tokens_idx].data.string = token;
+                tokens->p_tokens[tokens_idx].type        = TOKEN_parameter;
+                tokens->p_tokens[tokens_idx].data.string = token;
             }
         }
 
         tokens_idx++;
     }
 
-    debug_print_tokens(&tokens);
+    debug_print_tokens(tokens);
 
     return tokens;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void lexer_tokens_clear(LexerTokens* p_tokens)
+{
+    size_t i;
+    assert(p_tokens);
+
+    for(i = 0; i < p_tokens->size; i++)
+    {
+        LexerTokenTypes type = p_tokens->p_tokens[i].type;
+        
+        if(type == TOKEN_optional_label || type == TOKEN_parameter)
+            free((void*)p_tokens->p_tokens[i].data.string);
+    }
+
+    free((void*)p_tokens->p_tokens);
+    free((void*)p_tokens);
 }
