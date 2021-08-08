@@ -14,13 +14,21 @@ static const char path_slash = '/';
 
 char* get_filename_without_extension_from_path(const char* path)
 {
-    const char* extension = get_last_substring_by_delimiter(path, '.');
+    const char* extension = get_filename_extension(path);
     const char* filename  = get_last_substring_by_delimiter(path, path_slash);
     
     if(extension == path)
         return copy_string(filename);
 
     return get_substring(filename, 0, strlen(filename) - strlen(extension) - 1);
+}
+
+/* ------------------------------------------------------------------------- */
+
+const char* get_filename_extension(const char* path)
+{
+    const char* extension = get_last_substring_by_delimiter(path, '.');
+    return extension;
 }
 
 /* ------------------------------------------------------------------------- */

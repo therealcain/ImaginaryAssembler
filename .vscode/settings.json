@@ -8,6 +8,7 @@
         "opcodes.h": "c",
         "stdio.h": "c",
         "debug_logger.h": "c",
-        "debug_print.h": "c"
+        "debug_print.h": "c",
+        "filesystem.h": "c"
     }
 }

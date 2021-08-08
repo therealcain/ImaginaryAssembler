@@ -58,6 +58,12 @@ void start_assembler(const char* path)
     GenericVector all_tokens;
     size_t        i;
 
+    if(strcmp(get_filename_extension(path), "as") != 0)
+    {
+        fprintf(stderr, "[%s] Make sure file extension is .as!", ASSEMBLER_PREFIX);
+        return;
+    }
+
     fp = fopen(path, "r");
 
     if(fp == NULL)
@@ -92,6 +98,7 @@ void start_assembler(const char* path)
         printf("[%s] Validation finished successfully.\n", ASSEMBLER_PREFIX);
 
     /* Cleanup */
+    printf("[%s] Performing cleanup.\n", ASSEMBLER_PREFIX);
     for(i = 0; i < vector_size(&all_tokens); i++)
     {
         LexerTokens* p_token = (LexerTokens*)vector_at(&all_tokens, i);
