@@ -17,9 +17,9 @@
 static
 void overwrite_file(const char *filename, const char* extension)
 {
-    char buf[64] = "\0";
-
-    buffer_concentrate_string(buf, BUFFER_SIZE, filename, extension);
+    const size_t Size = 64;
+    char buf[Size] = "\0";
+    buffer_concentrate_string(buf, Size, filename, extension);
 
     if(check_file_exists(buf))
     {
@@ -31,11 +31,6 @@ void overwrite_file(const char *filename, const char* extension)
 static 
 void check_existence_output_files(const char* filename)
 {
-#ifndef NDEBUG
-    /* .dst = Debug Symbol Table */
-    overwrite_file(filename, ".dst");
-#endif
-
     /* .ob = Object */
     overwrite_file(filename, ".ob");
 
@@ -74,14 +69,13 @@ void start_assembler(const char* path)
 
     filename = get_filename_without_extension_from_path(path);
 
-    check_existence_output_files(filename);
     all_tokens = construct_vector();
 
     printf("[%s] Reading file: %s\n", ASSEMBLER_PREFIX, path);
 
     while(fgets(buf, BUFFER_SIZE, fp)) 
     {
-        LexerTokens* tokens = lexer_tokenize_line(buf, line); /* Heap Allocate*/
+        LexerTokens* tokens = lexer_tokenize_line(buf, line);
         vector_push_back(&all_tokens, (void*)tokens);
 
         /* Line is not empty. */
@@ -95,7 +89,14 @@ void start_assembler(const char* path)
     }
     
     if(parse_success)
+    {
         printf("[%s] Validation finished successfully.\n", ASSEMBLER_PREFIX);
+        
+        check_existence_output_files(filename);
+        parser_parse(&all_tokens, filename);
+
+        printf("[%s] Finished successfully.\n", ASSEMBLER_PREFIX);
+    }
 
     /* Cleanup */
     printf("[%s] Performing cleanup.\n", ASSEMBLER_PREFIX);

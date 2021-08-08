@@ -21,10 +21,25 @@ size_t count_lexer_tokens_enums(const LexerTokens* p_tokens, LexerTokenTypes typ
     return count;
 }
 
-static size_t count_parameters     (const LexerTokens* p_tokens) { return count_lexer_tokens_enums(p_tokens, TOKEN_parameter);      }
-static size_t count_labels         (const LexerTokens* p_tokens) { return count_lexer_tokens_enums(p_tokens, TOKEN_label);          }
-static size_t count_optional_labels(const LexerTokens* p_tokens) { return count_lexer_tokens_enums(p_tokens, TOKEN_optional_label); }
-static size_t count_opcodes        (const LexerTokens* p_tokens) { return count_lexer_tokens_enums(p_tokens, TOKEN_opcode);         }
+static 
+size_t count_parameters(const LexerTokens* p_tokens) { 
+    return count_lexer_tokens_enums(p_tokens, TOKEN_parameter);      
+}
+
+static 
+size_t count_labels(const LexerTokens* p_tokens) { 
+    return count_lexer_tokens_enums(p_tokens, TOKEN_label);          
+}
+
+static 
+size_t count_optional_labels(const LexerTokens* p_tokens) {
+    return count_lexer_tokens_enums(p_tokens, TOKEN_optional_label); 
+}
+
+static 
+size_t count_opcodes(const LexerTokens* p_tokens) { 
+    return count_lexer_tokens_enums(p_tokens, TOKEN_opcode);         
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -209,4 +224,76 @@ bool parser_validate_line(const LexerTokens* p_tokens, uint32_t line)
     }
 
     return false;
+}
+
+/* ------------------------------------------------------------------------- */
+
+typedef enum { 
+    SYMBOL_TABLE_ATTRIBUTES_Code,
+    SYMBOL_TABLE_ATTRIBUTES_Data,
+    SYMBOL_TABLE_ATTRIBUTES_External,
+    SYMBOL_TABLE_ATTRIBUTES_Entry
+} SymbolTableAttributes;
+
+typedef struct {
+    const char*           p_symbol;
+    uint32_t              value;
+    uint32_t              address;
+    SymbolTableAttributes attributes[2];
+} RowSymbolTable;
+
+static
+GenericVector generate_symbol_table(const GenericVector* p_all_tokens, const char* filename)
+{
+    static const uint32_t StartingAddress = 100;
+    static const uint32_t AddressSize     = 4;
+
+    size_t i;
+    uint32_t address = StartingAddress;
+
+    GenericVector stvec = construct_vector();
+
+    for(i = 0; i < vector_size(p_all_tokens); i++)
+    {
+        const LexerTokens* p_token = (LexerTokens*)vector_at(p_all_tokens, i);
+        RowSymbolTable* p_table = (RowSymbolTable*)malloc(sizeof(RowSymbolTable));
+
+        if(p_token->p_tokens[0].type == TOKEN_optional_label)
+        {
+            p_table->address = address;
+            
+            if(p_token->p_tokens[1].type == TOKEN_opcode)
+                p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_Code;
+            else if(p_token->p_tokens[1].type == TOKEN_label)
+            {
+                LabelTypes label_type = (LabelTypes)p_token->p_tokens[1].data.venum;
+                
+                /* TODO: Here. */
+
+                if(label_type == LABEL_extern)
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_External;
+                else if(label_type == LABEL_entry)
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_Entry;
+                else
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_Data;
+            }
+        }
+
+        vector_push_back(&stvec, (void*)p_table);
+
+        address += AddressSize;
+    }
+
+    return stvec;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void parser_parse(const GenericVector* p_all_tokens, const char* filename)
+{
+    GenericVector st = generate_symbol_table(p_all_tokens, filename);
+
+
+
+    // clear_symbol_table(p_st);
 }
