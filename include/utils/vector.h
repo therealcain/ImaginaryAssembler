@@ -22,6 +22,6 @@ extern void* vector_at(GenericVector* p_vec, size_t index);
 extern void vector_clear(GenericVector* p_vec);
 
 /* Get vector size. */
-extern size_t vector_size(GenericVector* p_vec);
+extern size_t vector_size(const GenericVector* p_vec);
 
 #endif /* VECTOR_GUARD_H */

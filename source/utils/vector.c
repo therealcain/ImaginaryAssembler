@@ -76,7 +76,7 @@ void vector_clear(GenericVector* p_vec)
 
 /* ------------------------------------------------------------------------- */
 
-size_t vector_size(GenericVector* p_vec)
+size_t vector_size(const GenericVector* p_vec)
 {
     assert(p_vec);
     return p_vec->index;

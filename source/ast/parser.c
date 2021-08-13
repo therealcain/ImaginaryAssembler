@@ -2,7 +2,9 @@
 #include "../../include/utils/debug_print.h"
 #include "../../include/opcodes.h"
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define PARSER_PREFIX "ParserAnalysis"
 
@@ -227,12 +229,12 @@ bool parser_validate_line(const LexerTokens* p_tokens, uint32_t line)
 }
 
 /* ------------------------------------------------------------------------- */
-
+#if 0
 typedef enum { 
-    SYMBOL_TABLE_ATTRIBUTES_Code,
-    SYMBOL_TABLE_ATTRIBUTES_Data,
-    SYMBOL_TABLE_ATTRIBUTES_External,
-    SYMBOL_TABLE_ATTRIBUTES_Entry
+    SYMBOL_TABLE_ATTRIBUTES_code,
+    SYMBOL_TABLE_ATTRIBUTES_data,
+    SYMBOL_TABLE_ATTRIBUTES_external,
+    SYMBOL_TABLE_ATTRIBUTES_entry
 } SymbolTableAttributes;
 
 typedef struct {
@@ -255,31 +257,42 @@ GenericVector generate_symbol_table(const GenericVector* p_all_tokens, const cha
 
     for(i = 0; i < vector_size(p_all_tokens); i++)
     {
-        const LexerTokens* p_token = (LexerTokens*)vector_at(p_all_tokens, i);
-        RowSymbolTable* p_table = (RowSymbolTable*)malloc(sizeof(RowSymbolTable));
+        const LexerTokenVariant* p_tokens = ((LexerTokens*)vector_at(p_all_tokens, i))->p_tokens;
 
-        if(p_token->p_tokens[0].type == TOKEN_optional_label)
+        if(p_tokens[0].type == TOKEN_optional_label || p_tokens[0].type == TOKEN_label)
         {
-            p_table->address = address;
-            
-            if(p_token->p_tokens[1].type == TOKEN_opcode)
-                p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_Code;
-            else if(p_token->p_tokens[1].type == TOKEN_label)
+            RowSymbolTable* p_table = (RowSymbolTable*)malloc(sizeof(RowSymbolTable));
+
+            if(p_tokens[0].type == TOKEN_optional_label)
             {
-                LabelTypes label_type = (LabelTypes)p_token->p_tokens[1].data.venum;
-                
-                /* TODO: Here. */
+                p_table->address  = address;
+                p_table->p_symbol = p_tokens[0].data.string;
 
-                if(label_type == LABEL_extern)
-                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_External;
-                else if(label_type == LABEL_entry)
-                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_Entry;
-                else
-                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_Data;
+                if(p_tokens[1].type == TOKEN_opcode)
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_code;
+                else if(p_tokens[1].type == TOKEN_label)
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_data;
             }
-        }
+            else
+            {
+                LabelTypes type = (LabelTypes)p_tokens[0].data.venum;
+                
+                if(type == LABEL_entry)
+                {
+                    p_table->address       = address;
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_entry;
+                    p_table->p_symbol      = p_tokens[1].data.string;
+                }
+                else if(type == LABEL_extern)
+                {
+                    p_table->address       = address;
+                    p_table->attributes[0] = SYMBOL_TABLE_ATTRIBUTES_external;
+                    p_table->p_symbol      = p_tokens[1].data.string;
+                }
+            }
 
-        vector_push_back(&stvec, (void*)p_table);
+            vector_push_back(&stvec, (void*)p_table);
+        }
 
         address += AddressSize;
     }
@@ -287,13 +300,58 @@ GenericVector generate_symbol_table(const GenericVector* p_all_tokens, const cha
     return stvec;
 }
 
+static
+void merge_symbol_table(GenericVector* p_vec)
+{
+    size_t i, j;
+
+    for(i = 0; i < vector_size(p_vec); i++)
+    {
+        for(j = 0; j < vector_size(p_vec); j++)
+        {
+            if(i != j)
+            {
+                RowSymbolTable *ivec, *jvec;
+                ivec = (RowSymbolTable*)vector_at(p_vec, i);
+                jvec = (RowSymbolTable*)vector_at(p_vec, j);
+
+                if(strcmp(ivec->p_symbol, jvec->p_symbol) == 0)
+                {
+                    ivec->attributes[1] = jvec->attributes[0];
+                    vector_remove(p_vec, jvec);
+                }
+            }
+        }
+    }
+}
+
+static
+void debug_print_symbol_table(const GenericVector* p_vec)
+{
+#ifndef NDEBUG
+
+    size_t i;
+
+    for(i = 0; i < vector_size(p_vec); i++)
+    {
+        RowSymbolTable* table = (RowSymbolTable*)vector_at(p_vec, i);
+        debug_print(LOG_NORMAL, "[%s] Symbol: %s, Value: %u, Address: %u, Attributes: %u, %u\n",
+            PARSER_PREFIX, table->p_symbol, table->value, table->address, (uint8_t)table->attributes[0], (uint8_t)table->attributes[1]);
+    }
+
+#endif
+}
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 void parser_parse(const GenericVector* p_all_tokens, const char* filename)
 {
+#if 0
     GenericVector st = generate_symbol_table(p_all_tokens, filename);
-
-
+    merge_symbol_table(&st);
+    debug_print_symbol_table(&st);
+#endif
 
     // clear_symbol_table(p_st);
 }

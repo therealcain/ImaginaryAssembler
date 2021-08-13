@@ -17,9 +17,8 @@
 static
 void overwrite_file(const char *filename, const char* extension)
 {
-    const size_t Size = 64;
-    char buf[Size] = "\0";
-    buffer_concentrate_string(buf, Size, filename, extension);
+    char buf[64] = "\0";
+    buffer_concentrate_string(buf, sizeof(buf), filename, extension);
 
     if(check_file_exists(buf))
     {
