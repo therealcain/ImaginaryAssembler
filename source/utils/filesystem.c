@@ -1,44 +1,42 @@
-#include "../../include/utils/filesystem.h"
-#include "../../include/utils/string.h"
-#include "../../include/utils/predefs.h"
+#include "utils/filesystem.h"
+#include "utils/string_utils.h"
+#include "utils/predefs.h"
 
 #include <stdio.h>
 
 #ifdef PLATFORM_WINDOWS
-static const char path_slash = '\\';
+static const char seperator = '\\';
 #else
-static const char path_slash = '/';
+static const char seperator = '/';
 #endif
 
 /* ------------------------------------------------------------------------- */
 
-char* get_filename_without_extension_from_path(const char* path)
+char* get_filename_without_extension_from_path( const char* path )
 {
-    const char* extension = get_filename_extension(path);
-    const char* filename  = get_last_substring_by_delimiter(path, path_slash);
-    
-    if(extension == path)
-        return copy_string(filename);
+    const char* extension = get_filename_extension( path );
+    const char* filename  = get_last_substring_by_delimiter( path, seperator );
 
-    return get_substring(filename, 0, strlen(filename) - strlen(extension) - 1);
+    return extension == path ?
+        copy_string( filename ) :
+        get_substring( filename, 0, strlen( filename ) - strlen( extension ) - 1 );
 }
 
 /* ------------------------------------------------------------------------- */
 
-const char* get_filename_extension(const char* path)
+const char* get_filename_extension( const char* path )
 {
-    const char* extension = get_last_substring_by_delimiter(path, '.');
-    return extension;
+    return get_last_substring_by_delimiter( path, '.' );
 }
 
 /* ------------------------------------------------------------------------- */
 
-bool check_file_exists(const char* path)
+bool can_read_file( const char* path )
 {
     FILE* fp;
-    if((fp = fopen(path, "rb")) != NULL)
+    if( (fp = fopen( path, "rb" )) != NULL )
     {
-        fclose(fp);
+        fclose( fp );
         return true;
     }
 

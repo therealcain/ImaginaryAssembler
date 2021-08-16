@@ -1,15 +1,9 @@
-#include "../include/opcodes.h"
+#include "opcodes.h"
 
-#include "../include/utils/stdint.h"
+#include "utils/my_inttypes.h"
 #include <string.h>
 
-typedef struct { 
-    char*       name; 
-    OpcodeTypes opcode;
-    int8_t      expected_params;
-} HashOpcode;
-
-static const HashOpcode lookup_table[] = {
+static const OpcodeInfo lookup_table [] ={
     { "add" , OPCODE_add , 3 },
     { "sub" , OPCODE_sub , 3 },
     { "and" , OPCODE_and , 3 },
@@ -38,35 +32,19 @@ static const HashOpcode lookup_table[] = {
     { "stop", OPCODE_stop, 0 }
 };
 
-static const size_t lookup_table_size = sizeof(lookup_table) / sizeof(HashOpcode);
+static const size_t lookup_table_size = sizeof( lookup_table ) / sizeof( OpcodeInfo );
 
 /* ------------------------------------------------------------------------- */
 
-OpcodeTypes get_opcode_from_string(const char* string)
+const OpcodeInfo* get_opcode_info_from_str( const char* str )
 {
     size_t i;
-    for(i = 0; i < lookup_table_size; ++i)
+    for( i = 0; i < lookup_table_size; ++i )
     {
-        const HashOpcode* lookup = &lookup_table[i];
+        const OpcodeInfo* lookup = &lookup_table[ i ];
 
-        if(strcmp(lookup->name, string) == 0)
-            return lookup->opcode;
-    }
-
-    return OPCODE_UNKNOWN;
-}
-
-/* ------------------------------------------------------------------------- */
-
-const char* get_string_from_opcode(OpcodeTypes type)
-{
-    size_t i;
-    for(i = 0; i < lookup_table_size; ++i)
-    {
-        const HashOpcode* lookup = &lookup_table[i];
-
-        if(type == lookup->opcode)
-            return lookup->name;
+        if( strcmp( lookup->name, str ) == 0 )
+            return lookup;
     }
 
     return NULL;
@@ -74,16 +52,16 @@ const char* get_string_from_opcode(OpcodeTypes type)
 
 /* ------------------------------------------------------------------------- */
 
-int8_t opcode_expect_number_of_params(OpcodeTypes type)
+const OpcodeInfo* get_opcode_info_from_opcode( OpcodeTypes type )
 {
     size_t i;
-    for(i = 0; i < lookup_table_size; ++i)
+    for( i = 0; i < lookup_table_size; ++i )
     {
-        const HashOpcode* lookup = &lookup_table[i];
+        const OpcodeInfo* lookup = &lookup_table[ i ];
 
-        if(type == lookup->opcode)
-            return lookup->expected_params;
+        if( type == lookup->opcode )
+            return lookup;
     }
 
-    return -1;
+    return NULL;
 }

@@ -8,6 +8,7 @@ else
 endif
 
 LDFLAGS = -lm 
+CFLAGS  = -Iinclude
 
 # Binary name and path
 BUILD_FOLDER = build
