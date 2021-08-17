@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
     /* Allocating internal memory and initializing variables. */
-    extern GenericVector* allocate_vector();
+    extern GenericVector* allocate_vector( void );
 
     /* Pushing a value to the vector. */
     extern void vector_push_back( GenericVector* p_vec, void* p_data );

@@ -9,7 +9,7 @@
 #define VECTOR_PREFIX "Vector"
 #define INITIAL_SIZE 5
 
-GenericVector* allocate_vector()
+GenericVector* allocate_vector( void )
 {
     GenericVector* p_vec = (GenericVector*)malloc( sizeof( GenericVector ) );
 
@@ -131,6 +131,8 @@ bool vector_remove_by_index( GenericVector* p_vec, size_t index )
 
     if( index >= p_vec->last )
         return false;
+
+    free( p_vec->p_data[ index ] );
 
     for( i = index; i < p_vec->last - 1; i++ )
         p_vec->p_data[ i ] = p_vec->p_data[ i + 1 ];

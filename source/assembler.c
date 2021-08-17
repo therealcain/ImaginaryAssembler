@@ -17,7 +17,7 @@
 static
 void overwrite_file( const char* filename, const char* extension )
 {
-    char buf[ 64 ] = "\0";
+    char buf[ 128 ] = "\0";
     buffer_concatenate_string( buf, sizeof( buf ), filename, extension );
 
     if( can_read_file( buf ) )
@@ -42,20 +42,20 @@ void check_existence_output_files( const char* filename )
 
 /* ------------------------------------------------------------------------- */
 
-void start_assembler( const char* path )
+int start_assembler( const char* path )
 {
     FILE* fp;
     char           buf[ BUFFER_SIZE ];
     uint32_t       line = 1;
     const char* filename;
-    bool           parse_success = true;
+    bool           success = true;
     GenericVector* all_tokens;
     size_t         i;
 
     if( strcmp( get_filename_extension( path ), "as" ) != 0 )
     {
         fprintf( stderr, "[%s] Make sure file extension is .as!", ASSEMBLER_PREFIX );
-        return;
+        return EXIT_FAILURE;
     }
 
     fp = fopen( path, "r" );
@@ -63,7 +63,7 @@ void start_assembler( const char* path )
     if( fp == NULL )
     {
         fprintf( stderr, "Failed to load: %s, Skipping...", path );
-        return;
+        return EXIT_FAILURE;
     }
 
     filename = get_filename_without_extension_from_path( path );
@@ -75,27 +75,35 @@ void start_assembler( const char* path )
     while( fgets( buf, BUFFER_SIZE, fp ) )
     {
         LexerTokens* tokens = lexer_tokenize_line( buf, line );
-        vector_push_back( all_tokens, (void*)tokens );
 
-        /* Line is not empty. */
-        if( tokens->size != 0 )
+        if( tokens != NULL )
         {
-            if( !parser_validate_line( tokens, line ) )
-                parse_success = false;
+            vector_push_back( all_tokens, (void*)tokens );
+
+            /* Line is not empty. */
+            if( tokens->size != 0 )
+            {
+                if( !parser_validate_line( tokens, line ) )
+                    success = false;
+            }
         }
+        else
+            success = false;
 
         line++;
     }
 
-    if( parse_success )
+    if( success )
     {
         printf( "[%s] Validation finished successfully.\n", ASSEMBLER_PREFIX );
 
         check_existence_output_files( filename );
-        parser_parse( all_tokens, filename );
+        // parser_parse( all_tokens, filename );
 
         printf( "[%s] Finished successfully.\n", ASSEMBLER_PREFIX );
     }
+    else
+        printf( "[%s] Validation didn't finish, errors were occurred, exiting...\n", ASSEMBLER_PREFIX );
 
     /* Cleanup */
     printf( "[%s] Performing cleanup.\n", ASSEMBLER_PREFIX );
@@ -108,4 +116,6 @@ void start_assembler( const char* path )
     vector_clear( all_tokens );
     free( (void*)filename );
     fclose( fp );
+
+    return success ? EXIT_SUCCESS : EXIT_FAILURE;
 }

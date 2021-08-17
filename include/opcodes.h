@@ -39,7 +39,8 @@ typedef enum {
 typedef struct {
     const char* name;
     OpcodeTypes opcode;
-    int8_t      expected_params;
+    uint8_t     expected_params;
+    uint8_t     bytes;
 } OpcodeInfo;
 
 /* ------------------------------------------------------------------------- */

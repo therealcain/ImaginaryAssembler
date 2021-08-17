@@ -19,7 +19,7 @@ LexerTokens* make_lexer_tokens( size_t size )
 {
     LexerTokens* tokens = (LexerTokens*)malloc( sizeof( LexerTokens ) );
     tokens->size        = size;
-    tokens->p_tokens    = (LexerTokenVariant*)malloc( tokens->size * sizeof( LexerTokenVariant ) );
+    tokens->p_tokens    = (LexerTokenVariant*)calloc( tokens->size, sizeof( LexerTokenVariant ) );
 
     return tokens;
 }
@@ -136,6 +136,84 @@ size_t get_number_of_tokens( const char* string, size_t length )
 
 /* ------------------------------------------------------------------------- */
 
+/* Validating the parameter, making sure it has valid characters. */
+static
+bool validate_parameter( const char* token, size_t len, uint32_t line )
+{
+    /*
+     * INValid CASES:
+     *  1. Look for weird characters.
+     *  2. Make sure string start either with $, +, -, ", or character..
+     *  3. Registers only identified by numbers.
+     */
+
+    size_t i;
+    bool quotation = false;
+    bool reg       = false;
+
+    for( i = 0; i < len; i++ )
+    {
+        char ch = token[ i ];
+
+        if( token[ i ] == '"' )
+        {
+            quotation = !quotation;
+            continue;
+        }
+
+        if( quotation )
+            continue;
+
+        if( token[ i ] == '$' && reg == false )
+        {
+            reg = true;
+            continue;
+        }
+
+        if( i == 0 )
+        {
+            if( ch != '$'
+                && ch != '+'
+                && ch != '-'
+                && !isalpha( ch )
+                && !isdigit( ch ) )
+            {
+                debug_print( LOG_ERROR, "Error:\n" );
+                fprintf( stderr, "[%s] [Line: %d] First character: '%c' in '%s' is invalid!\n",
+                    LEXER_PREFIX, line, ch, token );
+
+                return false;
+            }
+        }
+        else
+        {
+            if( reg )
+            {
+                if( !isdigit( ch ) )
+                {
+                    debug_print( LOG_ERROR, "Error:\n" );
+                    fprintf( stderr, "[%s] [Line: %d] '%c' in '%s' is invalid for register! ( Make sure register only has numbers. )\n",
+                        LEXER_PREFIX, line, ch, token );
+
+                    return false;
+                }
+            }
+            else if( !isdigit( ch ) && !isalpha( ch ) )
+            {
+                debug_print( LOG_ERROR, "Error:\n" );
+                fprintf( stderr, "[%s] [Line: %d] '%c' in '%s' is invalid character!\n",
+                    LEXER_PREFIX, line, ch, token );
+
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/* ------------------------------------------------------------------------- */
+
 LexerTokens* lexer_tokenize_line( const char* string, uint32_t line )
 {
     LexerTokens* tokens;
@@ -144,6 +222,7 @@ LexerTokens* lexer_tokenize_line( const char* string, uint32_t line )
     size_t begin, end;
     size_t num_of_tokens;
     char* token;
+    bool  asciz = false;
 
     begin = end = tokens_idx = 0;
 
@@ -156,6 +235,8 @@ LexerTokens* lexer_tokenize_line( const char* string, uint32_t line )
 
     while( (token = get_next_token( string, &begin, &end, length )) != NULL )
     {
+        size_t token_length = strlen( token );
+
         if( is_token_comment( token ) )
         {
             tokens->size = tokens_idx;
@@ -169,30 +250,57 @@ LexerTokens* lexer_tokenize_line( const char* string, uint32_t line )
             {
                 tokens->p_tokens[ tokens_idx ].type   = TOKEN_optional_label;
 
-                token[ strlen( token ) - 1 ] = '\0';
+                token[ token_length - 1 ] = '\0';
                 tokens->p_tokens[ tokens_idx ].p_data = (void*)token;
             }
-
-            else if( is_token_label( token ) )
-            {
-                tokens->p_tokens[ tokens_idx ].type   = TOKEN_label;
-                tokens->p_tokens[ tokens_idx ].p_data = (void*)get_label_info_from_str( token )->label;
-
-                free( (void*)token );
-            }
-
-            else if( is_token_opcode( token ) )
-            {
-                tokens->p_tokens[ tokens_idx ].type   = TOKEN_opcode;
-                tokens->p_tokens[ tokens_idx ].p_data = (void*)get_opcode_info_from_str( token )->opcode;
-
-                free( (void*)token );
-            }
-
             else
             {
-                tokens->p_tokens[ tokens_idx ].type   = TOKEN_parameter;
-                tokens->p_tokens[ tokens_idx ].p_data = (void*)token;
+                string_tolower( token );
+
+                if( is_token_label( token ) )
+                {
+                    LabelTypes label =  get_label_info_from_str( token )->label;
+
+                    tokens->p_tokens[ tokens_idx ].type   = TOKEN_label;
+                    tokens->p_tokens[ tokens_idx ].p_data = (void*)label;
+
+                    asciz = label == LABEL_asciz;
+
+                    free( (void*)token );
+                }
+
+                else if( is_token_opcode( token ) )
+                {
+                    tokens->p_tokens[ tokens_idx ].type   = TOKEN_opcode;
+                    tokens->p_tokens[ tokens_idx ].p_data = (void*)get_opcode_info_from_str( token )->opcode;
+
+                    free( (void*)token );
+                }
+
+                else
+                {
+                    if( validate_parameter( token, token_length, line ) )
+                    {
+                        char* temp = token;
+                        if( asciz )
+                        {
+                            temp = get_substring( token, 1, token_length - 1 );
+                            free( (void*)token );
+                        }
+
+                        tokens->p_tokens[ tokens_idx ].type   = TOKEN_parameter;
+                        tokens->p_tokens[ tokens_idx ].p_data = (void*)temp;
+                    }
+                    else
+                    {
+                        free( (void*)token );
+                        token = NULL;
+
+                        lexer_tokens_clear( tokens );
+
+                        return NULL;
+                    }
+                }
             }
         }
 
@@ -225,5 +333,4 @@ void lexer_tokens_clear( LexerTokens* p_tokens )
 
     free( (void*)p_tokens );
     p_tokens = NULL;
-
 }

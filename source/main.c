@@ -5,15 +5,21 @@
 
 int main( int argc, char** argv )
 {
+    int ret;
+
     if( argc <= 1 )
     {
         fprintf( stderr, "Please specify files." );
         return EXIT_FAILURE;
     }
 
+    // here
     /* Starting the assembler on every file starting from end to begin. */
     while( argc-- > 1 )
-        start_assembler( argv[ argc ] );
+    {
+        ret = start_assembler( argv[ argc ] ) == EXIT_FAILURE ?
+            EXIT_FAILURE : ret;
+    }
 
-    return EXIT_SUCCESS;
+    return ret;
 }

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <ctype.h>
 
 char* get_substring( const char* string, size_t begin, size_t end )
 {
@@ -59,4 +60,16 @@ void buffer_concatenate_string( char* dest, size_t len, const char* src1, const 
 char* copy_string( const char* string )
 {
     return get_substring( string, 0, strlen( string ) );
+}
+
+/* ------------------------------------------------------------------------- */
+
+void string_tolower( char* string )
+{
+    size_t i;
+    for( i = 0; i < strlen( string ); i++ )
+    {
+        if( isalpha( string[ i ] ) )
+            string[ i ] = tolower( string[ i ] );
+    }
 }

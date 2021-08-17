@@ -4,12 +4,12 @@
 #include <string.h>
 
 static const LabelInfo lookup_table [] ={
-    { ".db"     , LABEL_data_byte  },
-    { ".dw"     , LABEL_data_word  },
-    { ".dh"     , LABEL_data_dword },
-    { ".asciz"  , LABEL_asciz      },
-    { ".entry"  , LABEL_entry      },
-    { ".extern" , LABEL_extern     }
+    { ".db"     , LABEL_data_byte  , 1},
+    { ".dw"     , LABEL_data_word  , 4},
+    { ".dh"     , LABEL_data_dword , 2},
+    { ".asciz"  , LABEL_asciz      , 1},
+    { ".entry"  , LABEL_entry      , 0},
+    { ".extern" , LABEL_extern     , 0}
 };
 
 static const size_t lookup_table_size = sizeof( lookup_table ) / sizeof( LabelInfo );
@@ -40,7 +40,7 @@ const LabelInfo* get_label_info_from_label( LabelTypes type )
         const LabelInfo* lookup = &lookup_table[ i ];
 
         if( type == lookup->label )
-            return lookup->name;
+            return lookup;
     }
 
     return NULL;

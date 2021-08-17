@@ -196,7 +196,6 @@ bool validate_line_sequence( const LexerTokens* p_tokens, uint32_t line )
             {
                 type = p_tokens->p_tokens[ 1 ].type;
 
-
                 if( type == TOKEN_label || type == TOKEN_opcode )
                     return check_parameters_starting_from_index( p_tokens, line, 2 );
                 else
@@ -236,7 +235,7 @@ bool parser_validate_line( const LexerTokens* p_tokens, uint32_t line )
 /* ------------------------------------------------------------------------- */
 
 typedef enum {
-    SYMBOL_TABLE_ATTRIBUTES_code,
+    SYMBOL_TABLE_ATTRIBUTES_code = 1,
     SYMBOL_TABLE_ATTRIBUTES_data,
     SYMBOL_TABLE_ATTRIBUTES_external,
     SYMBOL_TABLE_ATTRIBUTES_entry
@@ -249,11 +248,35 @@ typedef struct {
     SymbolTableAttributes attr1, attr2;
 } RowSymbolTable;
 
+/* ------------------------------------------------------------------------- */
+
 static
-GenericVector* generate_symbol_table( const GenericVector* p_all_tokens, const char* filename )
+uint32_t symbol_table_address_adder( const LexerTokens* p_tokens )
+{
+    LexerTokenVariant* p_variant = p_tokens->p_tokens;
+
+    if( p_variant[ 0 ].type == TOKEN_optional_label )
+    {
+        if( p_variant[ 1 ].type == TOKEN_opcode )
+            return get_opcode_info_from_opcode( (OpcodeTypes)p_variant[ 1 ].p_data )->bytes;
+        else if( p_variant[ 1 ].type == TOKEN_label )
+        {
+            const LabelTypes label = (LabelTypes)p_variant[ 1 ].p_data;
+            const uint8_t adder    = get_label_info_from_label( label )->bytes;
+
+            return adder * (strlen( (const char*)p_variant[ 2 ].p_data ) + (label == LABEL_asciz));
+        }
+    }
+    else if( p_variant[ 0 ].type == TOKEN_opcode )
+        return get_opcode_info_from_opcode( (OpcodeTypes)p_variant[ 0 ].p_data )->bytes;
+
+    return 0;
+}
+
+static
+GenericVector* generate_symbol_table( GenericVector* p_all_tokens )
 {
     static const uint32_t StartingAddress = 100;
-    static const uint32_t AddressSize     = 4;
 
     size_t i;
     uint32_t address = StartingAddress;
@@ -262,48 +285,60 @@ GenericVector* generate_symbol_table( const GenericVector* p_all_tokens, const c
 
     for( i = 0; i < vector_size( p_all_tokens ); i++ )
     {
-        const LexerTokenVariant* p_tokens = ((LexerTokens*)vector_at( (GenericVector*)p_all_tokens, i ))->p_tokens;
+        const LexerTokens* p_tokens        = (const LexerTokens*)vector_at( p_all_tokens, i );
+        const LexerTokenVariant* p_variants = &p_tokens->p_tokens[ i ];
 
-        if( p_tokens[ 0 ].type == TOKEN_optional_label || p_tokens[ 0 ].type == TOKEN_label )
-        {
-            RowSymbolTable* p_table = (RowSymbolTable*)malloc( sizeof( RowSymbolTable ) );
+        // LexerTokenTypes type = p_variants[ 0 ].type;
 
-            if( p_tokens[ 0 ].type == TOKEN_optional_label )
-            {
-                p_table->address  = address;
-                p_table->p_symbol = (const char*)p_tokens[ 0 ].p_data;
+        // if( type == TOKEN_optional_label || type == TOKEN_label )
+        // {
+        //     RowSymbolTable* p_table = (RowSymbolTable*)malloc( sizeof( RowSymbolTable ) );
 
-                if( p_tokens[ 1 ].type == TOKEN_opcode )
-                    p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_code;
-                else if( p_tokens[ 1 ].type == TOKEN_label )
-                    p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_data;
-            }
-            else
-            {
-                LabelTypes type = (LabelTypes)p_tokens[ 0 ].p_data;
+        //     if( type == TOKEN_optional_label )
+        //     {
+        //         p_table->address  = address;
+        //         p_table->p_symbol = (const char*)p_variants[ 0 ].p_data;
 
-                if( type == LABEL_entry )
-                {
-                    p_table->address       = address;
-                    p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_entry;
-                    p_table->p_symbol      = (const char*)p_tokens[ 1 ].p_data;
-                }
-                else if( type == LABEL_extern )
-                {
-                    p_table->address       = address;
-                    p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_external;
-                    p_table->p_symbol      = (const char*)p_tokens[ 1 ].p_data;
-                }
-            }
+        //         // address += get_opcode_info_from_opcode( (OpcodeTypes)p_tokens[ 1 ].p_data )->bytes;
 
-            vector_push_back( stvec, (void*)p_table );
-        }
+        //         if( p_variants[ 1 ].type == TOKEN_opcode )
+        //             p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_code;
+        //         else if( p_variants[ 1 ].type == TOKEN_label )
+        //             p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_data;
+        //     }
+        //     else
+        //     {
+        //         LabelTypes type = (LabelTypes)p_variants[ 0 ].p_data;
 
-        address += AddressSize;
+        //         p_table->address  = address;
+
+        //         if( type == LABEL_entry )
+        //         {
+        //             p_table->p_symbol = (const char*)p_variants[ 1 ].p_data;
+        //             p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_entry;
+        //         }
+
+        //         else if( type == LABEL_extern )
+        //         {
+        //             p_table->p_symbol = (const char*)p_variants[ 1 ].p_data;
+        //             p_table->attr1 = SYMBOL_TABLE_ATTRIBUTES_external;
+        //         }
+        //     }
+
+        //     if( p_table->p_symbol == NULL )
+        //         free( (void*)p_table );
+        //     else
+        //         vector_push_back( stvec, (void*)p_table );
+        // }
+
+        // printf( "Addr: %d\n", address );
+        // address += symbol_table_address_adder( p_tokens );
     }
 
     return stvec;
 }
+
+/* ------------------------------------------------------------------------- */
 
 static
 void merge_symbol_table( GenericVector* p_vec )
@@ -320,19 +355,20 @@ void merge_symbol_table( GenericVector* p_vec )
                 RowSymbolTable* ivec = (RowSymbolTable*)vector_at( p_vec, i );
                 RowSymbolTable* jvec = (RowSymbolTable*)vector_at( p_vec, j );
 
-                if( ivec->p_symbol != NULL && jvec->p_symbol != NULL )
+                if( strcmp( ivec->p_symbol, jvec->p_symbol ) == 0 )
                 {
-                    if( strcmp( ivec->p_symbol, jvec->p_symbol ) == 0 )
-                    {
-                        ivec->attr2 = jvec->attr1;
-                        vector_remove_by_ptr( p_vec, jvec );
-                        len = vector_size( p_vec );
-                    }
+                    ivec->attr2 = jvec->attr1;
+
+                    vector_remove_by_ptr( p_vec, jvec );
+
+                    len = vector_size( p_vec );
                 }
             }
         }
     }
 }
+
+/* ------------------------------------------------------------------------- */
 
 static
 void debug_print_symbol_table( const GenericVector* p_vec )
@@ -350,11 +386,23 @@ void debug_print_symbol_table( const GenericVector* p_vec )
 
 /* ------------------------------------------------------------------------- */
 
-void parser_parse( const GenericVector* p_all_tokens, const char* filename )
+static
+void symbol_table_free( GenericVector* p_vec )
 {
-    GenericVector* st = generate_symbol_table( p_all_tokens, filename );
+    size_t i;
+    for( i = 0; i < vector_size( p_vec ); i++ )
+        free( vector_at( p_vec, i ) );
+
+    vector_clear( p_vec );
+}
+
+/* ------------------------------------------------------------------------- */
+
+void parser_parse( GenericVector* p_all_tokens, const char* filename )
+{
+    GenericVector* st = generate_symbol_table( p_all_tokens );
     merge_symbol_table( st );
     debug_print_symbol_table( st );
 
-    // clear_symbol_table(p_st);
+    symbol_table_free( st );
 }

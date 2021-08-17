@@ -1,6 +1,8 @@
 #ifndef LABELS_GUARD_H
 #define LABELS_GUARD_H
 
+#include "utils/my_inttypes.h"
+
 typedef enum {
 
     LABEL_data_byte = 0,  /* .db     */
@@ -18,6 +20,7 @@ typedef enum {
 typedef struct {
     const char* name;
     LabelTypes  label;
+    uint8_t     bytes;
 } LabelInfo;
 
 /* ------------------------------------------------------------------------- */
