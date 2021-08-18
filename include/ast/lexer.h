@@ -29,5 +29,8 @@ extern LexerTokens* lexer_tokenize_line( const char* string, uint32_t line );
 /* Cleaning internals. */
 extern void lexer_tokens_clear( LexerTokens* p_tokens );
 
+/* Printing all of the tokens in the tokens array. */
+extern void print_tokens( LexerTokens* p_tokens );
+
 #endif /* LEXER_GUARD_H */
 

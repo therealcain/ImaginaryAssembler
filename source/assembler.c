@@ -98,7 +98,7 @@ int start_assembler( const char* path )
         printf( "[%s] Validation finished successfully.\n", ASSEMBLER_PREFIX );
 
         check_existence_output_files( filename );
-        // parser_parse( all_tokens, filename );
+        parser_parse( all_tokens, filename );
 
         printf( "[%s] Finished successfully.\n", ASSEMBLER_PREFIX );
     }

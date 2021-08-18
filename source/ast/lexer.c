@@ -255,7 +255,7 @@ LexerTokens* lexer_tokenize_line( const char* string, uint32_t line )
             }
             else
             {
-                string_tolower( token );
+                /* as lower. */
 
                 if( is_token_label( token ) )
                 {
@@ -333,4 +333,30 @@ void lexer_tokens_clear( LexerTokens* p_tokens )
 
     free( (void*)p_tokens );
     p_tokens = NULL;
+}
+
+/* ------------------------------------------------------------------------- */
+
+void print_tokens( LexerTokens* p_tokens )
+{
+    size_t i;
+
+    assert( p_tokens );
+
+    for( i = 0; i < p_tokens->size; i++ )
+    {
+        const LexerTokenVariant* p_variants = p_tokens->p_tokens;
+
+        if( p_variants[ i ].type == TOKEN_optional_label )
+            printf( "Optional Label: %s\n", (const char*)p_variants[ i ].p_data );
+
+        if( p_variants[ i ].type == TOKEN_label )
+            printf( "Label: %s\n", get_label_info_from_label( (LabelTypes)p_variants[ i ].p_data )->name );
+
+        if( p_variants[ i ].type == TOKEN_opcode )
+            printf( "Opcode: %s\n", get_opcode_info_from_opcode( (OpcodeTypes)p_variants[ i ].p_data )->name );
+
+        if( p_variants[ i ].type == TOKEN_parameter )
+            printf( "Parameter: %s\n", (const char*)p_variants[ i ].p_data );
+    }
 }

@@ -31,7 +31,7 @@ void print_colored( LogType type, const char* fmt, va_list arg )
 void debug_print( LogType type, const char* fmt, ... )
 {
     // TODO: Fix this.
-#ifdef NDEBUG
+#ifndef NDEBUG
     va_list args;
 
     va_start( args, fmt );

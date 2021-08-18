@@ -3,7 +3,7 @@ CC = gcc
 
 ifeq ($(DEBUG), 1) 
 # $(info DEBUG MODE)
-	CFLAGS = -O2 -Wall -Wextra -Wpedantic -std=gnu89 -g3 # -fsanitize=address,undefined
+	CFLAGS = -O2 -Wall -Wextra -Wpedantic -std=gnu89 -ggdb3 # -fsanitize=address,undefined
 else 
 # $(info RELEASE MODE)
 	CFLAGS = -O2 -Wall --ansi -DNDEBUG
