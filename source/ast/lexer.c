@@ -360,3 +360,18 @@ void print_tokens( LexerTokens* p_tokens )
             printf( "Parameter: %s\n", (const char*)p_variants[ i ].p_data );
     }
 }
+
+/* ------------------------------------------------------------------------- */
+
+size_t count_lexer_tokens( const LexerTokens* p_tokens, LexerTokenTypes type )
+{
+    size_t count;
+    size_t i;
+
+    count = 0;
+
+    for( i = 0; i < p_tokens->size; i++ )
+        count += p_tokens->p_tokens[ i ].type == type;
+
+    return count;
+}

@@ -32,5 +32,12 @@ extern void lexer_tokens_clear( LexerTokens* p_tokens );
 /* Printing all of the tokens in the tokens array. */
 extern void print_tokens( LexerTokens* p_tokens );
 
+/* Counting the number of tokens in the tokens array. */
+extern size_t count_lexer_tokens( const LexerTokens* p_tokens, LexerTokenTypes type );
+#define count_lexer_parameters(tokens) count_lexer_tokens(tokens, TOKEN_parameter)
+#define count_lexer_labels(tokens) count_lexer_tokens(tokens, TOKEN_label)
+#define count_lexer_optional_labels(tokens) count_lexer_tokens(tokens, TOKEN_optional_label)
+#define count_lexer_opcodes(tokens) count_lexer_tokens(tokens, TOKEN_opcode)
+
 #endif /* LEXER_GUARD_H */
 

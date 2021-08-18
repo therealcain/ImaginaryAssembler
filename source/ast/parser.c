@@ -8,45 +8,6 @@
 
 #define PARSER_PREFIX "ParserAnalysis"
 
-/* Counting type of the tokens. */
-static
-size_t count_lexer_tokens_enums( const LexerTokens* p_tokens, LexerTokenTypes type )
-{
-    size_t count;
-    size_t i;
-
-    count = 0;
-
-    for( i = 0; i < p_tokens->size; i++ )
-        count += p_tokens->p_tokens[ i ].type == type;
-
-    return count;
-}
-
-static
-size_t count_parameters( const LexerTokens* p_tokens )
-{
-    return count_lexer_tokens_enums( p_tokens, TOKEN_parameter );
-}
-
-static
-size_t count_labels( const LexerTokens* p_tokens )
-{
-    return count_lexer_tokens_enums( p_tokens, TOKEN_label );
-}
-
-static
-size_t count_optional_labels( const LexerTokens* p_tokens )
-{
-    return count_lexer_tokens_enums( p_tokens, TOKEN_optional_label );
-}
-
-static
-size_t count_opcodes( const LexerTokens* p_tokens )
-{
-    return count_lexer_tokens_enums( p_tokens, TOKEN_opcode );
-}
-
 /* ------------------------------------------------------------------------- */
 
 static
@@ -80,10 +41,10 @@ bool validate_line( const LexerTokens* p_tokens, uint32_t line )
      */
     size_t labels, optional_labels, opcodes, parameters;
 
-    labels          = count_labels( p_tokens );
-    optional_labels = count_optional_labels( p_tokens );
-    opcodes         = count_opcodes( p_tokens );
-    parameters      = count_parameters( p_tokens );
+    labels          = count_lexer_labels( p_tokens );
+    optional_labels = count_lexer_optional_labels( p_tokens );
+    opcodes         = count_lexer_opcodes( p_tokens );
+    parameters      = count_lexer_parameters( p_tokens );
 
     /* Making sure there aren't too many labels. */
     if( labels >= 2 )
@@ -266,7 +227,7 @@ uint32_t symbol_table_address_adder( const LexerTokens* p_tokens )
             if( label == LABEL_asciz )
                 return adder * (strlen( (const char*)p_variant[ 2 ].p_data ) + 1);
             else
-                return adder * count_parameters( p_tokens );
+                return adder * count_lexer_parameters( p_tokens );
         }
     }
 
@@ -281,7 +242,7 @@ uint32_t symbol_table_address_adder( const LexerTokens* p_tokens )
         if( label == LABEL_asciz )
             return adder * (strlen( (const char*)p_variant[ 1 ].p_data ) + 1);
         else
-            return adder * count_parameters( p_tokens );
+            return adder * count_lexer_parameters( p_tokens );
     }
 
     return 0;
@@ -365,36 +326,6 @@ GenericVector* generate_symbol_table( GenericVector* p_all_tokens )
 
 /* ------------------------------------------------------------------------- */
 
-// static
-// void merge_symbol_table( GenericVector* p_vec )
-// {
-//     size_t i, j;
-//     size_t len = vector_size( p_vec );
-
-//     for( i = 0; i < len; i++ )
-//     {
-//         for( j = 0; j < len; j++ )
-//         {
-//             if( i != j )
-//             {
-//                 RowSymbolTable* ivec = (RowSymbolTable*)vector_at( p_vec, i );
-//                 RowSymbolTable* jvec = (RowSymbolTable*)vector_at( p_vec, j );
-
-//                 if( strcmp( ivec->p_symbol, jvec->p_symbol ) == 0 )
-//                 {
-//                     ivec->attr2 = jvec->attr1;
-
-//                     vector_remove_by_ptr( p_vec, jvec );
-
-//                     len = vector_size( p_vec );
-//                 }
-//             }
-//         }
-//     }
-// }
-
-/* ------------------------------------------------------------------------- */
-
 static
 void debug_print_symbol_table( const GenericVector* p_vec )
 {
@@ -426,7 +357,6 @@ void symbol_table_free( GenericVector* p_vec )
 void parser_parse( GenericVector* p_all_tokens, const char* filename )
 {
     GenericVector* st = generate_symbol_table( p_all_tokens );
-    // merge_symbol_table( st );
     debug_print_symbol_table( st );
 
     symbol_table_free( st );
